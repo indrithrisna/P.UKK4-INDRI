@@ -7,7 +7,7 @@ if (!isLoggedIn() || !hasRole('admin')) {
     exit();
 }
 
-// Handle pengembalian dengan denda
+
 if (isset($_POST['proses_pengembalian'])) {
     $id = (int)$_POST['peminjaman_id'];
     $kondisi = clean($_POST['kondisi_pengembalian']);
@@ -16,7 +16,7 @@ if (isset($_POST['proses_pengembalian'])) {
     $denda_kondisi = (float)$_POST['denda_kondisi'];
     $total_denda = $denda_keterlambatan + $denda_kondisi;
     
-    // Kembalikan stok alat
+    
     $detail_query = "SELECT alat_id, jumlah FROM detail_peminjaman WHERE peminjaman_id = $id";
     $detail_result = mysqli_query($conn, $detail_query);
     while ($detail = mysqli_fetch_assoc($detail_result)) {
@@ -25,7 +25,7 @@ if (isset($_POST['proses_pengembalian'])) {
         mysqli_query($conn, "UPDATE alat SET jumlah_tersedia = jumlah_tersedia + $jumlah WHERE id = $alat_id");
     }
     
-    // Update peminjaman
+    
     mysqli_query($conn, "UPDATE peminjaman SET 
                         status='selesai', 
                         tanggal_pengembalian=NOW(),
@@ -39,14 +39,54 @@ if (isset($_POST['proses_pengembalian'])) {
     exit();
 }
 
-// Get pengaturan denda
+
+if (isset($_POST['edit_riwayat'])) {
+    $id = (int)$_POST['peminjaman_id_edit'];
+    $kondisi = clean($_POST['kondisi_edit']);
+    $catatan = clean($_POST['catatan_edit']);
+    $denda = (float)$_POST['denda_edit'];
+    
+    mysqli_query($conn, "UPDATE peminjaman SET 
+                        kondisi_pengembalian='$kondisi',
+                        catatan_pengembalian='$catatan',
+                        denda=$denda
+                        WHERE id=$id AND status='selesai'");
+    
+    logActivity($_SESSION['user_id'], 'Edit Riwayat Pengembalian', "Mengedit riwayat pengembalian ID: $id");
+    header("Location: pemantau_pengembalian.php?success_edit=1");
+    exit();
+}
+
+
+if (isset($_GET['delete_riwayat'])) {
+    $id = (int)$_GET['delete_riwayat'];
+    $riwayat = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM peminjaman WHERE id=$id AND status='selesai'"));
+    
+    if ($riwayat) {
+      
+        $detail_query = "SELECT alat_id, jumlah FROM detail_peminjaman WHERE peminjaman_id=$id";
+        $detail_result = mysqli_query($conn, $detail_query);
+        while ($detail = mysqli_fetch_assoc($detail_result)) {
+            $alat_id = $detail['alat_id'];
+            $jumlah = $detail['jumlah'];
+            mysqli_query($conn, "UPDATE alat SET jumlah_tersedia = jumlah_tersedia + $jumlah WHERE id=$alat_id");
+        }
+        
+        mysqli_query($conn, "DELETE FROM peminjaman WHERE id=$id");
+        logActivity($_SESSION['user_id'], 'Hapus Riwayat Pengembalian', "Menghapus riwayat pengembalian ID: $id");
+    }
+    header("Location: pemantau_pengembalian.php?success_delete=1");
+    exit();
+}
+
+
 $pengaturan = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM pengaturan_denda LIMIT 1"));
 if (!$pengaturan) {
     mysqli_query($conn, "INSERT INTO pengaturan_denda (denda_per_hari, denda_rusak_ringan, denda_rusak_berat, denda_hilang_persen) VALUES (10000, 50000, 100000, 100)");
     $pengaturan = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM pengaturan_denda LIMIT 1"));
 }
 
-// Statistik
+
 $sedang_dipinjam = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM peminjaman WHERE status='dipinjam'"))['total'];
 $terlambat = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM peminjaman WHERE status='dipinjam' AND tanggal_kembali < CURDATE()"))['total'];
 $hampir_jatuh_tempo = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM peminjaman WHERE status='dipinjam' AND tanggal_kembali = CURDATE()"))['total'];
@@ -72,6 +112,20 @@ include '../includes/header.php';
             <?php if (isset($_GET['success'])): ?>
                 <div class="alert alert-success alert-dismissible fade show">
                     <i class="bi bi-check-circle"></i> Pengembalian berhasil diproses!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['success_edit'])): ?>
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle"></i> Riwayat berhasil diperbarui
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['success_delete'])): ?>
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle"></i> Riwayat berhasil dihapus
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
@@ -367,17 +421,25 @@ include '../includes/header.php';
                 <!-- Riwayat -->
                 <div id="riwayat" class="tab-pane fade">
                     <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalTambahRiwayat">
+                                <i class="bi bi-plus"></i> Tambah Riwayat
+                            </button>
+                        </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
+                                            <th style="width: 50px;">No</th>
                                             <th>Peminjam</th>
                                             <th>Alat</th>
                                             <th>Jumlah</th>
                                             <th>Tgl Dikembalikan</th>
                                             <th>Kondisi</th>
                                             <th>Denda</th>
+                                            <th>Catatan</th>
+                                            <th style="width: 190px;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -388,6 +450,7 @@ include '../includes/header.php';
                                                  ORDER BY p.tanggal_pengembalian DESC
                                                  LIMIT 20";
                                         $result = mysqli_query($conn, $query);
+                                        $no = 1;
                                         
                                         while ($row = mysqli_fetch_assoc($result)):
                                             $detail_query = "SELECT dp.*, a.nama_alat FROM detail_peminjaman dp
@@ -409,6 +472,7 @@ include '../includes/header.php';
                                             ];
                                         ?>
                                         <tr>
+                                            <td><?php echo $no++; ?></td>
                                             <td><?php echo $row['nama']; ?></td>
                                             <td><?php echo implode(', ', $alat_list); ?></td>
                                             <td><?php echo $total_jumlah; ?> unit</td>
@@ -420,10 +484,21 @@ include '../includes/header.php';
                                             </td>
                                             <td>
                                                 <?php if ($row['denda'] > 0): ?>
-                                                    <span class="text-danger">Rp<?php echo number_format($row['denda'], 0, ',', '.'); ?></span>
+                                                    <span class="text-danger fw-bold">Rp<?php echo number_format($row['denda'], 0, ',', '.'); ?></span>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo !empty($row['catatan_pengembalian']) ? htmlspecialchars($row['catatan_pengembalian']) : '<span class="text-muted">-</span>'; ?>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-warning" onclick="editRiwayat(<?php echo $row['id']; ?>,'<?php echo $row['kondisi_pengembalian'] ?? 'baik'; ?>',<?php echo $row['denda'] ?? 0; ?>,'<?php echo addslashes($row['catatan_pengembalian'] ?? ''); ?>',<?php echo $row['total_biaya'] ?? 0; ?>,<?php echo max(0, (strtotime(date('Y-m-d')) - strtotime($row['tanggal_kembali'])) / 86400); ?>)">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" onclick="if(confirm('Hapus Riwayat ini?')) location.href='?delete_riwayat=<?php echo $row['id']; ?>'">
+                                                    <i class="bi bi-trash"></i> Hapus
+                                                </button>
                                             </td>
                                         </tr>
                                         <?php endwhile; ?>
@@ -448,8 +523,111 @@ include '../includes/header.php';
                 include 'modal_pengembalian.php';
             endwhile;
             ?>
+            
+            <!-- Modal Edit Riwayat -->
+            <div class="modal fade" id="modalEditRiwayat" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="POST">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Riwayat Pengembalian</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="edit_riwayat" value="1">
+                                <input type="hidden" name="peminjaman_id_edit" id="peminjaman_id_edit" value="">
+                                <input type="hidden" name="denda_edit" id="denda_edit" value="0">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Kondisi Pengembalian</label>
+                                    <select name="kondisi_edit" id="kondisi_edit" class="form-control" required onchange="hitungDendaEdit()">
+                                        <option value="">-- Pilih Kondisi --</option>
+                                        <option value="baik">Baik</option>
+                                        <option value="rusak ringan">Rusak Ringan - Denda: Rp <?php echo number_format($pengaturan['denda_rusak_ringan'], 0, ',', '.'); ?></option>
+                                        <option value="rusak berat">Rusak Berat - Denda: Rp <?php echo number_format($pengaturan['denda_rusak_berat'], 0, ',', '.'); ?></option>
+                                        <option value="hilang">Hilang - Denda: <?php echo $pengaturan['denda_hilang_persen']; ?>% dari harga</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Denda Otomatis</label>
+                                    <div class="form-control bg-light" id="dendaEditDisplay">Rp 0</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Catatan</label>
+                                    <textarea name="catatan_edit" id="catatan_edit" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Tambah Riwayat -->
+            <div class="modal fade" id="modalTambahRiwayat" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tambah Riwayat Pengembalian Manual</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted"><i class="bi bi-info-circle"></i> Gunakan form ini untuk menambah riwayat pengembalian secara manual jika diperlukan.</p>
+                            <div class="alert alert-info" role="alert">
+                                <i class="bi bi-lightbulb"></i> Catatan: Riwayat pengembalian biasanya dibuat otomatis dari proses pengembalian. Fitur ini hanya untuk koreksi atau penambahan manual.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <p class="text-muted mb-0">Fitur ini akan dikembangkan lebih lanjut</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+// Data pengaturan denda
+const dendaRusakRingan = <?php echo $pengaturan['denda_rusak_ringan']; ?>;
+const dendaRusakBerat  = <?php echo $pengaturan['denda_rusak_berat']; ?>;
+const dendaHilangPersen = <?php echo $pengaturan['denda_hilang_persen']; ?>;
+const dendaPerHari     = <?php echo $pengaturan['denda_per_hari']; ?>;
+
+let editTotalBiaya = 0;
+let editHariTerlambat = 0;
+
+function editRiwayat(id, kondisi, denda, catatan, totalBiaya, hariTerlambat) {
+    document.getElementById('peminjaman_id_edit').value = id;
+    document.getElementById('kondisi_edit').value = kondisi;
+    document.getElementById('catatan_edit').value = catatan;
+    editTotalBiaya    = totalBiaya || 0;
+    editHariTerlambat = hariTerlambat || 0;
+    hitungDendaEdit();
+    new bootstrap.Modal(document.getElementById('modalEditRiwayat')).show();
+}
+
+function hitungDendaEdit() {
+    const kondisi = document.getElementById('kondisi_edit').value;
+    let dendaKondisi = 0;
+
+    if (kondisi === 'rusak ringan') dendaKondisi = dendaRusakRingan;
+    else if (kondisi === 'rusak berat') dendaKondisi = dendaRusakBerat;
+    else if (kondisi === 'hilang') dendaKondisi = editTotalBiaya * (dendaHilangPersen / 100);
+
+    const dendaKeterlambatan = editHariTerlambat * dendaPerHari;
+    const total = dendaKondisi + dendaKeterlambatan;
+
+    document.getElementById('denda_edit').value = total;
+    document.getElementById('dendaEditDisplay').textContent = 'Rp ' + total.toLocaleString('id-ID')
+        + (editHariTerlambat > 0 ? ' (termasuk keterlambatan ' + editHariTerlambat + ' hari)' : '');
+}
+</script>
 
 <?php include '../includes/footer.php'; ?>

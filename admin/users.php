@@ -104,7 +104,8 @@ include '../includes/header.php';
 </div>
 <div class="mb-3">
 <label class="form-label">Email</label>
-<input type="email" name="email" id="email" class="form-control" required>
+<input type="email" name="email" id="email" class="form-control" required oninput="cekEmail(this)">
+<div id="emailFeedback" class="mt-1" style="font-size:0.85rem;"></div>
 </div>
 <div class="mb-3">
 <label class="form-label">Telepon</label>
@@ -148,7 +149,37 @@ document.querySelector('[data-bs-target="#modalUser"]').addEventListener('click'
     document.getElementById('password').setAttribute('required', 'required');
     document.getElementById('modalTitle').textContent = 'Tambah User';
     document.getElementById('passwordNote').style.display = 'none';
+    document.getElementById('emailFeedback').innerHTML = '';
 });
+
+let emailTimer;
+function cekEmail(input) {
+    clearTimeout(emailTimer);
+    const email = input.value.trim();
+    const excludeId = document.getElementById('userId').value;
+    const feedback = document.getElementById('emailFeedback');
+
+    if (!email || !email.includes('@')) {
+        feedback.innerHTML = '';
+        return;
+    }
+
+    feedback.innerHTML = '<span class="text-muted"><i class="bi bi-hourglass-split"></i> Mengecek...</span>';
+
+    emailTimer = setTimeout(() => {
+        fetch(`check_email.php?email=${encodeURIComponent(email)}&exclude_id=${excludeId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.available) {
+                    feedback.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Email tersedia</span>';
+                    input.setCustomValidity('');
+                } else {
+                    feedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Email sudah digunakan!</span>';
+                    input.setCustomValidity('Email sudah digunakan');
+                }
+            });
+    }, 500);
+}
 </script>
 
 <?php include '../includes/footer.php'; ?>

@@ -8,6 +8,21 @@ if (!isLoggedIn() || !hasRole('peminjam')) {
 }
 
 $user_id = $_SESSION['user_id'];
+
+// Handle hapus riwayat
+if (isset($_GET['hapus'])) {
+    $id = (int)$_GET['hapus'];
+    // Hanya bisa hapus yang sudah selesai atau ditolak
+    $cek = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM peminjaman WHERE id=$id AND peminjam_id=$user_id AND status IN ('selesai','ditolak')"));
+    if ($cek) {
+        mysqli_query($conn, "DELETE FROM detail_peminjaman WHERE peminjaman_id=$id");
+        mysqli_query($conn, "DELETE FROM peminjaman WHERE id=$id");
+        logActivity($user_id, 'Hapus Riwayat', "Menghapus riwayat peminjaman ID: $id");
+    }
+    header("Location: riwayat.php");
+    exit();
+}
+
 $page_title = "Riwayat Peminjaman";
 include '../includes/header.php';
 ?>
@@ -37,6 +52,7 @@ include '../includes/header.php';
                                     <th><i class="bi bi-calendar-event"></i> Tgl Pengembalian</th>
                                     <th><i class="bi bi-info-circle"></i> Status</th>
                                     <th><i class="bi bi-cash"></i> Total Biaya</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                         <tbody>
@@ -83,10 +99,23 @@ include '../includes/header.php';
                                     <?php if ($row['status'] == 'selesai'): ?>
                                         <span class="badge bg-success"><i class="bi bi-check-circle"></i> Selesai</span>
                                     <?php else: ?>
-                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ditolak</span>
+                                        <?php if (!empty($row['keterangan']) && strpos($row['keterangan'], '[Dibatalkan peminjam]') !== false): ?>
+                                            <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Dibatalkan</span>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars(str_replace('[Dibatalkan peminjam] ', '', $row['keterangan'])); ?></small>
+                                        <?php else: ?>
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ditolak</span>
+                                            <?php if (!empty($row['keterangan'])): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars($row['keterangan']); ?></small>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
                                 <td><strong class="text-primary">Rp <?php echo number_format($row['total_biaya'], 0, ',', '.'); ?></strong></td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" onclick="if(confirm('Hapus riwayat ini?')) location.href='?hapus=<?php echo $row['id']; ?>'">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>

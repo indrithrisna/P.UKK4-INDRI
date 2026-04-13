@@ -141,7 +141,7 @@ include '../includes/header.php';
                                     <td><?php echo $no++; ?></td>
                                     <td><strong><?php echo htmlspecialchars($row['nama_alat']); ?></strong></td>
                                     <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['merk'] ?? '-'); ?></span></td>
-                                    <td><?php echo htmlspecialchars($row['nama_kategori']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['nama_kategori'] ?? '-'); ?></td>
                                     <td><?php echo $row['jumlah_total']; ?></td>
                                     <td>
                                         <?php if ($row['jumlah_tersedia'] == 0): ?>

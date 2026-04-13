@@ -117,11 +117,7 @@ function enhanceFormValidation() {
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
-                
-                // Show error message
-                showNotification('Mohon lengkapi semua field yang wajib diisi!', 'danger');
             }
-            
             form.classList.add('was-validated');
         });
     });
@@ -230,11 +226,7 @@ function calculateTotal() {
     
     if (tanggalPinjam && tanggalKembali && tanggalPinjam.value && tanggalKembali.value) {
         const days = Math.ceil((new Date(tanggalKembali.value) - new Date(tanggalPinjam.value)) / (1000 * 60 * 60 * 24));
-        
-        if (days > 0) {
-            // Show days info
-            showNotification(`Durasi peminjaman: ${days} hari`, 'info');
-        }
+        // Durasi dihitung tapi tidak perlu ditampilkan sebagai notifikasi
     }
 }
 

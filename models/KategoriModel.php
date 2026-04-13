@@ -25,7 +25,9 @@ class KategoriModel extends Model {
     }
 
     public function delete($id) {
-        return $this->query("DELETE FROM kategori WHERE id = " . (int)$id);
+        $id = (int)$id;
+        $this->query("UPDATE alat SET kategori_id = NULL WHERE kategori_id = $id");
+        return $this->query("DELETE FROM kategori WHERE id = $id");
     }
 }
 ?>

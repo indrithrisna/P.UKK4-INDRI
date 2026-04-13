@@ -10,7 +10,7 @@ if (!isLoggedIn() || !hasRole('petugas')) {
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     $alat = mysqli_fetch_assoc(mysqli_query($conn, "SELECT nama_alat FROM alat WHERE id=$id"));
-    mysqli_query($conn, "DELETE FROM alat WHERE id = $id");
+    mysqli_query($conn, "UPDATE alat SET deleted_at = NOW() WHERE id = $id");
     logActivity($_SESSION['user_id'], 'Hapus Alat', "Menghapus alat: {$alat['nama_alat']}");
     header("Location: alat.php");
     exit();
@@ -80,7 +80,7 @@ include '../includes/header.php';
                                 <td><?php echo $row['id']; ?></td>
                                 <td><?php echo htmlspecialchars($row['nama_alat']); ?></td>
                                 <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['merk'] ?? '-'); ?></span></td>
-                                <td><?php echo htmlspecialchars($row['nama_kategori']); ?></td>
+                                <td><?php echo htmlspecialchars($row['nama_kategori'] ?? '-'); ?></td>
                                 <td><?php echo $row['jumlah_total']; ?></td>
                                 <td><?php echo $row['jumlah_tersedia']; ?></td>
                                 <td><span class="badge bg-<?php echo $row['kondisi']=='baik'?'success':'warning'; ?>"><?php echo $row['kondisi']; ?></span></td>

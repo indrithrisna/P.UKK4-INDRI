@@ -32,16 +32,16 @@ include '../includes/header.php';
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>No</th>
                                 <th>Nama Kategori</th>
                                 <th>Deskripsi</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($kategori_list as $row): ?>
+                            <?php $no = 1; foreach ($kategori_list as $row): ?>
                             <tr>
-                                <td><?php echo $row['id']; ?></td>
+                                <td><?php echo $no++; ?></td>
                                 <td><?php echo htmlspecialchars($row['nama_kategori']); ?></td>
                                 <td><?php echo htmlspecialchars($row['deskripsi']); ?></td>
                                 <td>

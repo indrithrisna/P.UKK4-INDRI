@@ -1,4 +1,7 @@
 <?php
+// Set timezone Indonesia
+date_default_timezone_set('Asia/Jakarta');
+
 // Konfigurasi Database
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -31,6 +34,9 @@ if (!$conn) {
 // Set charset
 mysqli_set_charset($conn, "utf8");
 
+// Sinkronkan timezone MySQL dengan PHP
+mysqli_query($conn, "SET time_zone = '+07:00'");
+
 // Auto-create tables jika belum ada
 function autoCreateTables() {
     global $conn;
@@ -61,6 +67,12 @@ function autoCreateTables() {
     if ($check_deleted && mysqli_num_rows($check_deleted) == 0) {
         @mysqli_query($conn, "ALTER TABLE alat ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL");
     }
+
+    // Perbesar kolom total_biaya dan subtotal agar tidak out of range
+    @mysqli_query($conn, "ALTER TABLE peminjaman MODIFY COLUMN total_biaya DECIMAL(15,2) DEFAULT 0");
+    @mysqli_query($conn, "ALTER TABLE peminjaman MODIFY COLUMN denda DECIMAL(15,2) DEFAULT 0");
+    @mysqli_query($conn, "ALTER TABLE detail_peminjaman MODIFY COLUMN subtotal DECIMAL(15,2) DEFAULT 0");
+    @mysqli_query($conn, "ALTER TABLE detail_peminjaman MODIFY COLUMN harga_satuan DECIMAL(15,2) DEFAULT 0");
 }
 
 // Jalankan auto-create saat pertama kali load

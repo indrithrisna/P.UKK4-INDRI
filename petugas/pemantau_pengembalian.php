@@ -378,6 +378,7 @@ include '../includes/header.php';
                                             <th>Tgl Dikembalikan</th>
                                             <th>Kondisi</th>
                                             <th>Denda</th>
+                                            <th>Catatan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -424,6 +425,9 @@ include '../includes/header.php';
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo !empty($row['catatan_pengembalian']) ? htmlspecialchars($row['catatan_pengembalian']) : '<span class="text-muted">-</span>'; ?>
                                             </td>
                                         </tr>
                                         <?php endwhile; ?>

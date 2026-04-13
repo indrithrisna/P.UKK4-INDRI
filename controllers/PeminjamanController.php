@@ -48,12 +48,11 @@ class PeminjamanController extends Controller {
 
         $peminjaman_id = $this->model->create($postData);
 
-        // Simpan detail dan kurangi stok
+        // Simpan detail — TIDAK kurangi stok dulu, stok dikurangi saat disetujui/dipinjam
         foreach ($alatList as $item) {
             $alat     = $this->alatModel->getById($item['alat_id']);
             $subtotal = $alat['harga_sewa'] * $item['jumlah'] * $durasi;
             $this->model->addDetail($peminjaman_id, $item['alat_id'], $item['jumlah'], $alat['harga_sewa'], $subtotal);
-            $this->alatModel->kurangiStok($item['alat_id'], $item['jumlah']);
         }
 
         logActivity($_SESSION['user_id'], 'Buat Peminjaman', "Membuat peminjaman baru ID: $peminjaman_id");
@@ -68,22 +67,22 @@ class PeminjamanController extends Controller {
         $this->redirect('peminjaman.php');
     }
 
-    // Tolak peminjaman
+    // Tolak peminjaman — stok tidak perlu dikembalikan karena belum dikurangi saat pending
     public function tolak($id, $role = 'petugas') {
         $this->requireRole($role);
-        // Kembalikan stok
-        $details = $this->model->getDetail($id);
-        foreach ($details as $d) {
-            $this->alatModel->updateStok($d['alat_id'], $d['jumlah']);
-        }
         $this->model->updateStatus($id, 'ditolak', $_SESSION['user_id']);
         logActivity($_SESSION['user_id'], 'Tolak Peminjaman', "Menolak peminjaman ID: $id");
         $this->redirect('peminjaman.php');
     }
 
-    // Tandai sedang dipinjam
+    // Tandai sedang dipinjam — kurangi stok saat ini
     public function dipinjam($id, $role = 'petugas') {
         $this->requireRole($role);
+        // Kurangi stok alat
+        $details = $this->model->getDetail($id);
+        foreach ($details as $d) {
+            $this->alatModel->kurangiStok($d['alat_id'], $d['jumlah']);
+        }
         $this->model->updateStatus($id, 'dipinjam', $_SESSION['user_id']);
         logActivity($_SESSION['user_id'], 'Dipinjam', "Alat peminjaman ID: $id sedang dipinjam");
         $this->redirect('peminjaman.php');

@@ -9,8 +9,18 @@ if (!isLoggedIn() || !hasRole('admin')) {
 }
 
 $controller = new KategoriController($conn);
+$error_msg = '';
 
-if (isset($_GET['delete']))            $controller->delete((int)$_GET['delete']);
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    // Cek apakah masih ada alat yang pakai kategori ini
+    $cek = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM alat WHERE kategori_id = $id AND deleted_at IS NULL"));
+    if ($cek['total'] > 0) {
+        $error_msg = "Kategori tidak bisa dihapus karena masih digunakan oleh {$cek['total']} alat!";
+    } else {
+        $controller->delete($id);
+    }
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') $controller->save($_POST);
 
 $kategori_list = $controller->index();
@@ -32,16 +42,16 @@ include '../includes/header.php';
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>No</th>
                                 <th>Nama Kategori</th>
                                 <th>Deskripsi</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($kategori_list as $row): ?>
+                            <?php $no = 1; foreach ($kategori_list as $row): ?>
                             <tr>
-                                <td><?php echo $row['id']; ?></td>
+                                <td><?php echo $no++; ?></td>
                                 <td><?php echo htmlspecialchars($row['nama_kategori']); ?></td>
                                 <td><?php echo htmlspecialchars($row['deskripsi']); ?></td>
                                 <td>

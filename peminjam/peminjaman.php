@@ -9,10 +9,12 @@ if (!isLoggedIn() || !hasRole('peminjam')) {
 
 $user_id = $_SESSION['user_id'];
 
-if (isset($_GET['cancel'])) {
-    $id = (int)$_GET['cancel'];
-    mysqli_query($conn, "DELETE FROM peminjaman WHERE id=$id AND peminjam_id=$user_id AND status='pending'");
-    logActivity($_SESSION['user_id'], 'Batalkan Peminjaman', "Membatalkan peminjaman ID: $id");
+// Handle batalkan dengan alasan
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batal_id'])) {
+    $id     = (int)$_POST['batal_id'];
+    $alasan = clean($_POST['alasan_batal'] ?? '');
+    mysqli_query($conn, "UPDATE peminjaman SET status='ditolak', keterangan='[Dibatalkan peminjam] $alasan' WHERE id=$id AND peminjam_id=$user_id AND status='pending'");
+    logActivity($_SESSION['user_id'], 'Batalkan Peminjaman', "Membatalkan peminjaman ID: $id. Alasan: $alasan");
     header("Location: peminjaman.php");
     exit();
 }
@@ -229,7 +231,7 @@ $terlambat = mysqli_fetch_assoc(mysqli_query($conn, "
                                             <td>Rp <?php echo number_format($row['total_biaya'], 0, ',', '.'); ?></td>
                                             <td>
                                                 <?php if ($row['status'] == 'pending'): ?>
-                                                <button class="btn btn-sm btn-danger" onclick="if(confirm('Yakin batalkan?')) location.href='?cancel=<?php echo $row['id']; ?>'">Batalkan</button>
+                                                <button class="btn btn-sm btn-danger" onclick="showBatalModal(<?php echo $row['id']; ?>)">Batalkan</button>
                                                 <?php else: ?>
                                                 <span class="text-muted">-</span>
                                                 <?php endif; ?>
@@ -387,6 +389,40 @@ $terlambat = mysqli_fetch_assoc(mysqli_query($conn, "
     margin: 0 auto;
 }
 </style>
+
+
+<!-- Modal Batalkan -->
+<div class="modal fade" id="modalBatal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-x-circle"></i> Batalkan Peminjaman</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="batal_id" id="batalId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Alasan Pembatalan <span class="text-danger">*</span></label>
+                        <textarea name="alasan_batal" class="form-control" rows="4"
+                            placeholder="Contoh: Acara dibatalkan, salah pilih tanggal, dll..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kembali</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle"></i> Batalkan Peminjaman</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showBatalModal(id) {
+    document.getElementById('batalId').value = id;
+    new bootstrap.Modal(document.getElementById('modalBatal')).show();
+}
+</script>
 
 <?php include '../includes/footer.php'; ?>
 
