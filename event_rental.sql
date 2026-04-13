@@ -73,7 +73,25 @@ INSERT INTO `alat` (`id`, `nama_alat`, `merk`, `kategori_id`, `jumlah_total`, `j
 (24, 'AC Portable', NULL, 4, 5, 5, 'baik', 350000.00, 'AC portable untuk ruangan', NULL, '2026-02-11 02:16:55', NULL),
 (25, 'Podium Mimbar', NULL, 4, 10, 10, 'baik', 75000.00, 'Podium kayu untuk pembicara', NULL, '2026-02-11 02:16:55', NULL),
 (26, 'Microphone Wireless Shure', NULL, 1, 30, 30, 'baik', 100000.00, '', NULL, '2026-02-11 04:44:59', NULL),
-(27, 'Kursi Tiffany', 'JBL', 4, 60, 40, 'baik', 100000.00, '', NULL, '2026-04-08 04:03:14', NULL);
+(27, 'Kursi Tiffany', 'JBL', 4, 60, 40, 'baik', 100000.00, '', NULL, '2026-04-08 04:03:14', NULL),
+(28, 'Equalizer 7 Band', 'Yamaha', 1, 8, 8, 'baik', 125000.00, 'Equalizer untuk kontrol frekuensi audio', NULL, '2026-04-13 00:00:00', NULL),
+(29, 'Power Amplifier 500W', 'Crown', 1, 12, 12, 'baik', 180000.00, 'Power amplifier stereo 500 watt', NULL, '2026-04-13 00:00:00', NULL),
+(30, 'Subwoofer Aktif 18 inch', 'JBL', 1, 6, 6, 'baik', 350000.00, 'Subwoofer bass untuk sound system', NULL, '2026-04-13 00:00:00', NULL),
+(31, 'Wireless Microphone Receiver', 'Sennheiser', 1, 15, 15, 'baik', 85000.00, 'Receiver untuk microphone wireless', NULL, '2026-04-13 00:00:00', NULL),
+(32, 'Audio Interface USB', 'Focusrite', 1, 10, 10, 'baik', 275000.00, 'Audio interface untuk recording', NULL, '2026-04-13 00:00:00', NULL),
+(33, 'Monitor Speaker 12 inch', 'Yamaha', 1, 20, 20, 'baik', 95000.00, 'Monitor speaker untuk stage monitoring', NULL, '2026-04-13 00:00:00', NULL),
+(34, 'DJ Controller 4 Channel', 'Pioneer', 1, 5, 5, 'baik', 450000.00, 'DJ controller dengan efek built-in', NULL, '2026-04-13 00:00:00', NULL),
+(35, 'Karaoke System Wireless', 'Samsung', 1, 8, 8, 'baik', 200000.00, 'Sistem karaoke dengan bluetooth', NULL, '2026-04-13 00:00:00', NULL),
+(36, 'Flower Wall Artificial', NULL, 3, 15, 15, 'baik', 150000.00, 'Dinding bunga buatan untuk dekorasi', NULL, '2026-04-13 00:00:00', NULL),
+(37, 'Photo Booth Props Set', NULL, 3, 25, 25, 'baik', 75000.00, 'Set props untuk photo booth', NULL, '2026-04-13 00:00:00', NULL),
+(38, 'Neon Sign Custom', NULL, 3, 12, 12, 'baik', 125000.00, 'Tulisan neon LED custom', NULL, '2026-04-13 00:00:00', NULL),
+(39, 'LED Strip Lights 5m', NULL, 3, 30, 30, 'baik', 45000.00, 'Strip LED RGB untuk dekorasi', NULL, '2026-04-13 00:00:00', NULL),
+(40, 'Balloon Arch Kit', NULL, 3, 20, 20, 'baik', 85000.00, 'Kit lengkap untuk membuat balloon arch', NULL, '2026-04-13 00:00:00', NULL),
+(41, 'Table Centerpieces Set', NULL, 3, 50, 50, 'baik', 25000.00, 'Hiasan meja untuk acara', NULL, '2026-04-13 00:00:00', NULL),
+(42, 'Wedding Arch Frame', NULL, 3, 8, 8, 'baik', 175000.00, 'Frame arch untuk pernikahan', NULL, '2026-04-13 00:00:00', NULL),
+(43, 'Red Carpet 10m', NULL, 3, 10, 10, 'baik', 120000.00, 'Karpet merah untuk entrance VIP', NULL, '2026-04-13 00:00:00', NULL),
+(44, 'Stage Backdrop Custom', NULL, 3, 6, 6, 'baik', 250000.00, 'Backdrop panggung custom design', NULL, '2026-04-13 00:00:00', NULL),
+(45, 'Event Signage Set', NULL, 3, 40, 40, 'baik', 35000.00, 'Set rambu-rambu untuk event', NULL, '2026-04-13 00:00:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -574,7 +592,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `alat`
 --
 ALTER TABLE `alat`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `detail_peminjaman`
