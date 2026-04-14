@@ -51,6 +51,7 @@ include '../includes/header.php';
                                     <th><i class="bi bi-calendar-x"></i> Tgl Kembali</th>
                                     <th><i class="bi bi-calendar-event"></i> Tgl Pengembalian</th>
                                     <th><i class="bi bi-info-circle"></i> Status</th>
+                                    <th><i class="bi bi-sticky"></i> Catatan</th>
                                     <th><i class="bi bi-cash"></i> Total Biaya</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -101,13 +102,16 @@ include '../includes/header.php';
                                     <?php else: ?>
                                         <?php if (!empty($row['keterangan']) && strpos($row['keterangan'], '[Dibatalkan peminjam]') !== false): ?>
                                             <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Dibatalkan</span>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars(str_replace('[Dibatalkan peminjam] ', '', $row['keterangan'])); ?></small>
                                         <?php else: ?>
                                             <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ditolak</span>
-                                            <?php if (!empty($row['keterangan'])): ?>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars($row['keterangan']); ?></small>
-                                            <?php endif; ?>
                                         <?php endif; ?>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($row['status'] != 'selesai' && !empty($row['keterangan'])): ?>
+                                        <small class="text-muted"><?php echo htmlspecialchars(str_replace('[Dibatalkan peminjam] ', '', $row['keterangan'])); ?></small>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
                                 <td><strong class="text-primary">Rp <?php echo number_format($row['total_biaya'], 0, ',', '.'); ?></strong></td>
@@ -163,7 +167,21 @@ include '../includes/header.php';
                                                         <?php if ($row['status'] == 'selesai'): ?>
                                                             <span class="badge bg-success"><i class="bi bi-check-circle"></i> Selesai</span>
                                                         <?php else: ?>
-                                                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ditolak</span>
+                                                            <?php if (!empty($row['keterangan']) && strpos($row['keterangan'], '[Dibatalkan peminjam]') !== false): ?>
+                                                                <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Dibatalkan</span>
+                                                            <?php else: ?>
+                                                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ditolak</span>
+                                                            <?php endif; ?>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong><i class="bi bi-sticky"></i> Catatan</strong></td>
+                                                    <td>
+                                                        <?php if (!empty($row['keterangan'])): ?>
+                                                            <?php echo htmlspecialchars(str_replace('[Dibatalkan peminjam] ', '', $row['keterangan'])); ?>
+                                                        <?php else: ?>
+                                                            -
                                                         <?php endif; ?>
                                                     </td>
                                                 </tr>
