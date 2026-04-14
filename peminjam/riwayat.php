@@ -176,6 +176,9 @@ include '../includes/header.php';
                                                     </td>
                                                 </tr>
                                                 <tr>
+
+                                                    <!---catatan untuk pembatalan oleh peminjam--->
+        
                                                     <td><strong><i class="bi bi-sticky"></i> Catatan</strong></td>
                                                     <td>
                                                         <?php if (!empty($row['keterangan'])): ?>
